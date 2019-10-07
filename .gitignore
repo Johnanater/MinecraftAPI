@@ -1,0 +1,11 @@
+# Block Rider workspace
+.idea/
+
+# Don't track skincache
+# Will refine this later
+MinecraftAPI/skincache/
+MinecraftAPI/capecache/
+
+bin/
+obj/
+/packages/
