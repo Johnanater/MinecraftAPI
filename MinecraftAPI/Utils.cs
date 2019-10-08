@@ -24,7 +24,6 @@ namespace MinecraftAPI
             
             // Else, retrieve it all
             return await RetrieveFromMojang(uuid);
-            //return await Program.JsonUtils.GetPlayerData(uuid);
         }
         
         // Gets player data, checks for cache first
@@ -36,13 +35,15 @@ namespace MinecraftAPI
                 return await Program.JsonUtils.GetPlayerDataFromUsername(username);
             }
             
-            // Find the UUID
+            // Else, Find the UUID
             var uuid = await RetrieveUUID(username);
+            Console.WriteLine("got uuid");
             
-            // Else, retrieve it all
+            // And retrieve it all
             return await RetrieveFromMojang(uuid);
         }
 
+        // Retrieve PlayerData from Mojang
         public async Task<PlayerData> RetrieveFromMojang(string uuid)
         {
             var sessionProfile = await GetSessionProfile(uuid);
@@ -51,20 +52,19 @@ namespace MinecraftAPI
                 return null;
             
             var properties = DecodeProperties(sessionProfile.Properties[0]);
-            
-            //var skin = await ImageToBase64((properties.Textures.SKIN.Url))
-            
+
             var playerData = new PlayerData
             {
                 Uuid = uuid,
                 Username =  sessionProfile.Name,
                 Skin = await ImageToBase64(properties.Textures.Skin?.Url),
-                Cape = await ImageToBase64(properties.Textures.Cape?.Url)
+                Cape = await ImageToBase64(properties.Textures.Cape?.Url),
+                LastUpdated = DateTime.Now
             };
 
             // Store it in the cache
             Program.JsonUtils.SetPlayerData(playerData).FireAndForget();
-
+            
             return playerData;
         }
 

@@ -1,3 +1,6 @@
+using System;
+using Remotion.Linq.Parsing.Structure.IntermediateModel;
+
 namespace MinecraftAPI.Models
 {
     public class PlayerData
@@ -6,5 +9,6 @@ namespace MinecraftAPI.Models
         public string Username;
         public string Skin;
         public string Cape;
+        public DateTime LastUpdated;
     }
 }

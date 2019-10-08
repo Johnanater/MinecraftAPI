@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MinecraftAPI.Models;
 using Newtonsoft.Json;
 
-
-namespace MinecraftAPI.Models
+namespace MinecraftAPI
 {
     public class JsonUtils
     {
@@ -20,7 +20,10 @@ namespace MinecraftAPI.Models
         {
             var cache = await ReadFromCache();
 
-            return cache.Players.Any(obj => obj.Uuid.Equals(uuid));
+            var player = cache.Players.FirstOrDefault(obj => obj.Uuid.Equals(uuid));
+
+            // If the cache is older than time in config, renew it
+            return player?.LastUpdated.AddSeconds(Program.Instance.CacheTimeSeconds) > DateTime.Now;
         }
         
         // Check if there is a player with the same username in the cache
@@ -28,7 +31,10 @@ namespace MinecraftAPI.Models
         {
             var cache = await ReadFromCache();
 
-            return cache.Players.Any(obj => obj.Username.ToLower().Equals(username.ToLower()));
+            var player = cache.Players.FirstOrDefault(obj => obj.Username.ToLower().Equals(username.ToLower()));
+            
+            // If the cache is older than time in config, renew it
+            return player?.LastUpdated.AddSeconds(Program.Instance.CacheTimeSeconds) > DateTime.Now;
         }
         
         // Get player data from UUID
