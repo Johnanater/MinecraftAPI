@@ -1,4 +1,4 @@
-using System.IO;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,13 +16,13 @@ namespace MinecraftAPI.Controllers
                 return null;
             
             string uuid = HttpContext.Request.Query["uuid"];
+            
+            var playerData = await Program.Utils.GetPlayerData(uuid);
 
-            await Program.Utils.RetrieveSkin(uuid);
-
-            var dir = "skincache/";
-            //var path = Path.Combine(dir, uuid + ".png");
-            var image = System.IO.File.OpenRead(dir + uuid + ".png");
-            //if (!System.IO.File.Exists(path)) return null;
+            if (playerData?.Skin == null)
+                return new EmptyResult();
+            
+            var image = Convert.FromBase64String(playerData.Skin);
 
             return File(image, "image/png");
         }

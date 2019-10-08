@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace MinecraftAPI
 {
@@ -26,7 +23,25 @@ namespace MinecraftAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            
+            // Add Polly
+            services.AddHttpClient("Minecraft") 
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5))  
+                // important step  
+                .AddPolicyHandler(GetRetryPolicy());  
         }
+        
+        private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()  
+        {  
+            return HttpPolicyExtensions  
+                    // HttpRequestException, 5XX and 408  
+                    .HandleTransientHttpError()  
+                    // 404  
+                    .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)  
+                    // Retry two times after delay  
+                    .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))  
+                ;  
+        }  
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -38,10 +53,11 @@ namespace MinecraftAPI
             else
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                //app.UseHsts(); // REMOVE HTTPS
             }
 
-            app.UseHttpsRedirection();
+            // Remove HTTPS
+            //app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

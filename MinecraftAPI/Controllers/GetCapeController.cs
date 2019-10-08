@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,18 +8,21 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetCapeController : ControllerBase
     {
+        // api/Minecraft/GetCape/?uuid={uuid}
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            if (string.IsNullOrEmpty(HttpContext.Request.Query["uuid"])) return null;
+            if (string.IsNullOrEmpty(HttpContext.Request.Query["uuid"]))
+                return null;
+            
             string uuid = HttpContext.Request.Query["uuid"];
+            
+            var playerData = await Program.Utils.GetPlayerData(uuid);
 
-            await Program.Utils.RetrieveCape(uuid);
-
-            var dir = "capecache/";
-            var image = System.IO.File.OpenRead(dir + uuid + ".png");
-
-            //if (!System.IO.File.Exists(image)) return null;
+            if (playerData?.Cape == null)
+                return new EmptyResult();
+            
+            var image = Convert.FromBase64String(playerData.Cape);
 
             return File(image, "image/png");
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,25 +8,27 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetCapeByUsername : ControllerBase
     {
+        // api/Minecraft/GetCapeByUsername/?username={username}
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            if (string.IsNullOrEmpty(HttpContext.Request.Query["username"])) return null;
+            if (string.IsNullOrEmpty(HttpContext.Request.Query["username"]))
+                return null;
+            
             string username = HttpContext.Request.Query["username"];
 
+            // Remove .png, for Minecraft clients
             if (username.Contains(".png"))
             {
                 username = username.Replace(".png", "");
             }
 
-            string uuid = await Program.Utils.RetrieveUUID(username);
+            var playerData = await Program.Utils.GetPlayerDataFromUsername(username);
 
-            await Program.Utils.RetrieveCape(uuid);
-
-            var dir = "capecache/";
-            var path = dir + uuid + ".png";
-            var image =  System.IO.File.OpenRead(path);
-            //if (!System.IO.File.Exists(path)) return null;
+            if (playerData?.Cape == null)
+                return new EmptyResult();
+            
+            var image = Convert.FromBase64String(playerData.Cape);
 
             return File(image, "image/png");
         }

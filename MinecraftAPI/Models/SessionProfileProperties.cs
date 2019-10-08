@@ -5,27 +5,26 @@ namespace MinecraftAPI.Models
     public class SessionProfileProperties
     {
         [JsonProperty("timestamp")]
-        public long Timestamp { get; set; }
+        public long Timestamp;
 
         [JsonProperty("profileId")]
-        public string ProfileId { get; set; }
+        public string ProfileId;
 
         [JsonProperty("profileName")]
-        public string ProfileName { get; set; }
+        public string ProfileName;
 
         [JsonProperty("textures")]
-        public Textures Textures { get; set; }
+        public Textures Textures;
     }
     
-    public class SKIN
+    public class Skin
     {
         [JsonProperty("url")]
-        public string Url { get; set; }
+        public string Url;
     }
     
-    public class CAPE
+    public class Cape
     {
-
         [JsonProperty("url")]
         public string Url;
     }
@@ -33,9 +32,9 @@ namespace MinecraftAPI.Models
     public class Textures
     {
         [JsonProperty("SKIN")]
-        public SKIN SKIN { get; set; }
+        public Skin Skin;
 
         [JsonProperty("CAPE")]
-        public CAPE CAPE;
+        public Cape Cape;
     }
 }

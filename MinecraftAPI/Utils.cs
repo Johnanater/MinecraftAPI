@@ -1,7 +1,5 @@
 using System;
-using System.IO;
-using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using MinecraftAPI.Models;
 using Newtonsoft.Json;
@@ -10,111 +8,109 @@ namespace MinecraftAPI
 {
     public class Utils
     {
+        private static readonly HttpClient HttpClient = new HttpClient();
+        
         private const string GetProfileUrl = "https://api.mojang.com/users/profiles/minecraft/{0}";
+        private const string GetSessionProfileUrl = "https://sessionserver.mojang.com/session/minecraft/profile/{0}";
+
+        // Gets player data, checks for cache first
+        public async Task<PlayerData> GetPlayerData(string uuid)
+        {
+            // Check if it is in the cache
+            if (await Program.JsonUtils.InCache(uuid))
+            {
+                return await Program.JsonUtils.GetPlayerData(uuid);
+            }
+            
+            // Else, retrieve it all
+            return await RetrieveFromMojang(uuid);
+            //return await Program.JsonUtils.GetPlayerData(uuid);
+        }
+        
+        // Gets player data, checks for cache first
+        public async Task<PlayerData> GetPlayerDataFromUsername(string username)
+        {
+            // Check if it is in the cache
+            if (await Program.JsonUtils.UsernameInCache(username))
+            {
+                return await Program.JsonUtils.GetPlayerDataFromUsername(username);
+            }
+            
+            // Find the UUID
+            var uuid = await RetrieveUUID(username);
+            
+            // Else, retrieve it all
+            return await RetrieveFromMojang(uuid);
+        }
+
+        public async Task<PlayerData> RetrieveFromMojang(string uuid)
+        {
+            var sessionProfile = await GetSessionProfile(uuid);
+            
+            if (sessionProfile == null)
+                return null;
+            
+            var properties = DecodeProperties(sessionProfile.Properties[0]);
+            
+            //var skin = await ImageToBase64((properties.Textures.SKIN.Url))
+            
+            var playerData = new PlayerData
+            {
+                Uuid = uuid,
+                Username =  sessionProfile.Name,
+                Skin = await ImageToBase64(properties.Textures.Skin?.Url),
+                Cape = await ImageToBase64(properties.Textures.Cape?.Url)
+            };
+
+            // Store it in the cache
+            Program.JsonUtils.SetPlayerData(playerData).FireAndForget();
+
+            return playerData;
+        }
 
         // Retrieve UUID from Mojang
         public async Task<string> RetrieveUUID(string username)
         {
-            using (WebClient webClient = new WebClient())
-            {
-                var jsonDownload = await webClient.DownloadStringTaskAsync(string.Format(GetProfileUrl, username));
-
-                try
-                {
-                    var userProfile = JsonConvert.DeserializeObject<UserProfile>(jsonDownload);
-                    return userProfile.Id;
-                }
-                catch
-                {
-                    return null;
-                }
-            }
+            var jsonDownload = await HttpClient.GetStringAsync(string.Format(GetProfileUrl, username));
+            var userProfile = JsonConvert.DeserializeObject<UserProfile>(jsonDownload);
+            
+            return userProfile?.Id;
         }
-        
-        // Retrieve skin from Mojang
-        // TODO: Make actually use async
-        public async Task RetrieveSkin(string uuid)
+
+        public async Task<string> ImageToBase64(string url)
         {
-            string skinFile = "skincache/" + uuid + ".png";
-            string skinCache = "skincache";
-
-            // If the file is younger than an hour, do not fetch again
-            if (File.Exists(skinFile) && File.GetLastWriteTime(skinFile).AddHours(1) > DateTime.Now)
-            {
-                return;
-            }
-            try
-            {
-                var sessionProfile = GetSessionProfile(uuid);
-
-                SessionProfileProperties jsonProfileProperties = DecodeProperties(sessionProfile.Properties.FirstOrDefault());
-
-                using (WebClient webClient = new WebClient())
-                {
-                    if (!Directory.Exists(skinCache))
-                    {
-                        Directory.CreateDirectory(skinCache);
-                    }
-                    webClient.DownloadFile(jsonProfileProperties.Textures.SKIN.Url, skinFile);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("RetrieveSkin error: " + uuid);
-                Console.WriteLine("Error message: " + e.Message + Environment.NewLine);
-                Console.WriteLine(e);
-            }
+            if (url == null)
+                return null;
+            
+            var bytes = await HttpClient.GetByteArrayAsync(url);
+            
+            return Convert.ToBase64String(bytes);
         }
         
-        // Retrieve Cape from Mojang
-        // TODO: Make actually async
-        public async Task RetrieveCape(string uuid)
+        // Retrieve username from Mojang
+        public async Task<string> RetrieveUsername(string uuid)
         {
-            string capeFile = "capecache/" + uuid + ".png";
-            string capeCache = "capecache/";
+            var sessionProfile = await GetSessionProfile(uuid);
 
-            if (System.IO.File.Exists(capeFile) && System.IO.File.GetLastWriteTime(capeFile).AddHours(1) > DateTime.Now)
-            {
-                return;
-            }
-
-            try
-            {
-                var sessionProfile = GetSessionProfile(uuid);
-
-                var jsonProperties = DecodeProperties(sessionProfile.Properties.FirstOrDefault());
-
-                if (jsonProperties.Textures.CAPE == null) return;
-
-                using (WebClient webClient = new WebClient())
-                {
-                    if (!Directory.Exists(capeCache))
-                    {
-                        Directory.CreateDirectory(capeCache);
-                    }
-                    webClient.DownloadFile(jsonProperties.Textures.CAPE.Url, capeFile);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("RetrieveCape error: " + uuid);
-                Console.WriteLine("Error message: " + e.Message + Environment.NewLine);
-                Console.WriteLine(e);
-            }
+            return sessionProfile.Name;
         }
-        
-        public SessionProfile GetSessionProfile(string uuid)
+
+        // Get a user's session profile from UUID
+        public async Task<SessionProfile> GetSessionProfile(string uuid)
         {
-            using (WebClient webClient = new WebClient())
-            {
-                var jsonDownload = webClient.DownloadString(string.Format("https://sessionserver.mojang.com/session/minecraft/profile/{0}", uuid));
+            var response = await HttpClient.GetAsync(string.Format(GetSessionProfileUrl, uuid));
 
-                var json = JsonConvert.DeserializeObject<SessionProfile>(jsonDownload);
+            if (!response.IsSuccessStatusCode)
+                return null;
+            
+            var jsonDownload = await response.Content.ReadAsStringAsync();
+            
+            var json = JsonConvert.DeserializeObject<SessionProfile>(jsonDownload);
 
-                return json;
-            }
+            return json;
         }
         
+        // Decode the Base64-encoded properties found in the SessionProfile
         public SessionProfileProperties DecodeProperties(SessionProfilePropertiesEncoded properties)
         {
             byte[] decoded = Convert.FromBase64String(properties.Value);
@@ -123,6 +119,23 @@ namespace MinecraftAPI
             var json = JsonConvert.DeserializeObject<SessionProfileProperties>(decodedString);
 
             return json;
+        }
+    }
+    
+    // Extensions
+    public static class Extensions
+    {
+        // From https://stackoverflow.com/a/27852439
+        public static async void FireAndForget(this Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }

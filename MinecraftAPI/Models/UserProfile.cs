@@ -8,7 +8,6 @@ namespace MinecraftAPI.Models
         public string Id;
 
         [JsonProperty("name")]
-
         public string Name;
     }
 }

@@ -1,6 +1,5 @@
-using System.IO;
+using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MinecraftAPI.Controllers
@@ -10,23 +9,27 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetSkinByUsernameController : ControllerBase
     {
+        // api/Minecraft/GetSkinByUsername/?username={username}
         [HttpGet]
         public async Task<ActionResult> Get()
         {
-            if (string.IsNullOrEmpty(HttpContext.Request.Query["username"])) return null;
+            if (string.IsNullOrEmpty(HttpContext.Request.Query["username"]))
+                return null;
+            
             string username = HttpContext.Request.Query["username"];
 
+            // Remove .png, for Minecraft clients
             if (username.Contains(".png"))
             {
                 username = username.Replace(".png", "");
             }
-            string uuid = await Program.Utils.RetrieveUUID(username);
 
-            await Program.Utils.RetrieveSkin(uuid);
+            var playerData = await Program.Utils.GetPlayerDataFromUsername(username);
 
-            var dir = "skincache/";
-            var image = System.IO.File.OpenRead(dir + uuid + ".png");
-            //if (!System.IO.File.Exists(image)) return null;
+            if (playerData?.Skin == null)
+                return new EmptyResult();
+            
+            var image = Convert.FromBase64String(playerData.Skin);
 
             return File(image, "image/png");
         }

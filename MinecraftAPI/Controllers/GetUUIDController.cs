@@ -14,9 +14,10 @@ namespace MinecraftAPI.Controllers
             var username = HttpContext.Request.Query["username"];
             var uuid = await Program.Utils.RetrieveUUID(username);
             
+            if (uuid == null)
+                return new EmptyResult();
+            
             return uuid; 
         }
-
     }
-
 }
