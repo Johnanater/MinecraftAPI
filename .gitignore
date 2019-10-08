@@ -2,7 +2,7 @@
 .idea/
 
 # Don't track cache
-Cache/
+/Cache/
 
 bin/
 obj/
