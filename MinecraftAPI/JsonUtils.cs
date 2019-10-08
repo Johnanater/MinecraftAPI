@@ -12,8 +12,8 @@ namespace MinecraftAPI
     public class JsonUtils
     {
         private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
-
-        public const string CacheFile = "../Cache/cache.json";
+        
+        public string CacheFile = "./Cache/cache.json";
 
         // Check if there is a player with the same UUID in the cache
         public async Task<bool> InCache(string uuid)
@@ -186,7 +186,7 @@ namespace MinecraftAPI
             
             try
             {
-                Directory.CreateDirectory("../Cache");
+                Directory.CreateDirectory(CacheFile.Replace("cache.json", ""));
                 using (StreamWriter writer = new StreamWriter(CacheFile))
                 {
                     await writer.WriteAsync(ToJson(cache));

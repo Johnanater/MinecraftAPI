@@ -51,6 +51,7 @@ namespace MinecraftAPI
 
             if (env.IsDevelopment())
             {
+                Program.JsonUtils.CacheFile = $"../Cache/cache.json";
                 app.UseDeveloperExceptionPage();
             }
             else
