@@ -84,10 +84,10 @@ namespace MinecraftAPI
             {
                 json = JsonConvert.SerializeObject(cache, Formatting.Indented);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.Write("Failed to serialize JSON");
-                Console.WriteLine(e);
+                Console.Write("Error: Failed to serialize JSON!");
+                Console.WriteLine(ex);
                 throw;
             }
 
@@ -102,9 +102,10 @@ namespace MinecraftAPI
             {
                 cache = JsonConvert.DeserializeObject<Cache>(json);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.WriteLine(e);
+                Console.Write("Error: Failed to deserialize JSON!");
+                Console.WriteLine(ex);
                 throw;
             }
 
@@ -114,34 +115,30 @@ namespace MinecraftAPI
         // Read from the cache
         public async Task<Cache> ReadFromCache()
         {
-            Cache cache;
-            
             try
             {
                 await CheckCache();
-                string json; 
+                string json;
                 using (StreamReader reader = new StreamReader(CacheFile))
                 {
                     json = await reader.ReadToEndAsync();
                 }
-                
-                cache = FromJson(json);
+
+                return FromJson(json);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 Console.WriteLine("Failed to read from cache!");
-                Console.WriteLine(e);
+                Console.WriteLine(ex);
                 throw;
             }
-
-            return cache;
         }
 
         // Write to the cache
         public async Task WriteToCache(Cache cache)
         {
             await _writeLock.WaitAsync();
-                        
+
             var json = ToJson(cache);
 
             try
@@ -169,7 +166,7 @@ namespace MinecraftAPI
         {
             if (!File.Exists(CacheFile))
             {
-                Console.WriteLine("Cache not found, creating...");
+                Console.WriteLine("Info: Cache not found, creating...");
                 await CreateCache();
             }
         }

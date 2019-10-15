@@ -26,9 +26,10 @@ namespace MinecraftAPI.Controllers
 
             var playerData = await Program.Utils.GetPlayerDataFromUsername(username);
 
+            // Player has no skin, return empty
             if (playerData?.Skin == null)
                 return new EmptyResult();
-            
+
             var image = Convert.FromBase64String(playerData.Skin);
 
             return File(image, "image/png");

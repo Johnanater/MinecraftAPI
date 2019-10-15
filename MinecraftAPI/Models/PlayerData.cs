@@ -1,5 +1,4 @@
 using System;
-using Remotion.Linq.Parsing.Structure.IntermediateModel;
 
 namespace MinecraftAPI.Models
 {

@@ -8,8 +8,8 @@ namespace MinecraftAPI
 {
     public class Utils
     {
-        private static readonly HttpClient HttpClient = new HttpClient();
-        
+        public static readonly HttpClient HttpClient = new HttpClient();
+
         private const string GetProfileUrl = "https://api.mojang.com/users/profiles/minecraft/{0}";
         private const string GetSessionProfileUrl = "https://sessionserver.mojang.com/session/minecraft/profile/{0}";
 
@@ -37,8 +37,7 @@ namespace MinecraftAPI
             
             // Else, Find the UUID
             var uuid = await RetrieveUUID(username);
-            Console.WriteLine("got uuid");
-            
+
             // And retrieve it all
             return await RetrieveFromMojang(uuid);
         }
@@ -47,9 +46,12 @@ namespace MinecraftAPI
         public async Task<PlayerData> RetrieveFromMojang(string uuid)
         {
             var sessionProfile = await GetSessionProfile(uuid);
-            
+
             if (sessionProfile == null)
+            {
+                Console.WriteLine($"Error: SessionProfile for {uuid} is null!");
                 return null;
+            }
             
             var properties = DecodeProperties(sessionProfile.Properties[0]);
 
@@ -64,7 +66,7 @@ namespace MinecraftAPI
 
             // Store it in the cache
             Program.JsonUtils.SetPlayerData(playerData).FireAndForget();
-            
+
             return playerData;
         }
 
@@ -101,8 +103,11 @@ namespace MinecraftAPI
             var response = await HttpClient.GetAsync(string.Format(GetSessionProfileUrl, uuid));
 
             if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Error: Got {response.StatusCode} when retrieving SessionProfile for {uuid}!");
                 return null;
-            
+            }
+
             var jsonDownload = await response.Content.ReadAsStringAsync();
             
             var json = JsonConvert.DeserializeObject<SessionProfile>(jsonDownload);

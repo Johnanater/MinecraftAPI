@@ -23,6 +23,9 @@ namespace MinecraftAPI.Controllers
                 username = username.Replace(".png", "");
             }
 
+            // Wait a second, due to race conditions and Mojang
+            await Task.Delay(1000);
+            
             var playerData = await Program.Utils.GetPlayerDataFromUsername(username);
 
             if (playerData?.Cape == null)

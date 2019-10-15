@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
-using Polly.Extensions.Http;
 
 namespace MinecraftAPI
 {
@@ -19,29 +17,19 @@ namespace MinecraftAPI
 
         public IConfiguration Configuration { get; }
 
+        // TODO: Implement a retry on errors
+        // TODO: The current Polly implementation not work because the Dependency Injection does not work with external classes or something
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             
             // Add Polly
-            services.AddHttpClient("Minecraft") 
-                .SetHandlerLifetime(TimeSpan.FromMinutes(5))  
-                // important step  
-                .AddPolicyHandler(GetRetryPolicy());  
+            services
+                .AddHttpClient<Utils>()
+                .AddTransientHttpErrorPolicy(
+                    x => x.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt))));
         }
-        
-        private IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()  
-        {  
-            return HttpPolicyExtensions  
-                    // HttpRequestException, 5XX and 408  
-                    .HandleTransientHttpError()  
-                    // 404  
-                    .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)  
-                    // Retry two times after delay  
-                    .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))  
-                ;  
-        }  
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
