@@ -11,7 +11,9 @@ namespace MinecraftAPI
 {
     public class JsonUtils
     {
+        private readonly SemaphoreSlim _readLock = new SemaphoreSlim(1, 1);
         private readonly SemaphoreSlim _writeLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _checkLock = new SemaphoreSlim(1, 1);
         
         public string CacheFile = "./Cache/cache.json";
 
@@ -62,6 +64,8 @@ namespace MinecraftAPI
         // Set player data in cache
         public async Task SetPlayerData(PlayerData playerData)
         {
+            await _readLock.WaitAsync();
+            
             var cache = await ReadFromCache();
             
             // If already in cache, delete it
@@ -73,6 +77,7 @@ namespace MinecraftAPI
             cache.Players.Add(playerData);
 
             await WriteToCache(cache);
+            _readLock.Release();
         }
         
         // Convert to json
@@ -115,6 +120,8 @@ namespace MinecraftAPI
         // Read from the cache
         public async Task<Cache> ReadFromCache()
         {
+            await _writeLock.WaitAsync();
+
             try
             {
                 await CheckCache();
@@ -131,6 +138,10 @@ namespace MinecraftAPI
                 Console.WriteLine("Failed to read from cache!");
                 Console.WriteLine(ex);
                 throw;
+            }
+            finally
+            {
+                _writeLock.Release();
             }
         }
 
@@ -164,17 +175,32 @@ namespace MinecraftAPI
         // Check the cache, create if not exist
         public async Task CheckCache()
         {
-            if (!File.Exists(CacheFile))
+            await _checkLock.WaitAsync();
+            
+            try
             {
-                Console.WriteLine("Info: Cache not found, creating...");
-                await CreateCache();
+                if (!File.Exists(CacheFile))
+                {
+                    Console.WriteLine("Info: Cache not found, creating...");
+                    await CreateCache();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: Failed to check cache!");
+                Console.WriteLine(e);
+                throw;
+            }
+            finally
+            {
+                _checkLock.Release();
             }
         }
 
         // Create the cache
         public async Task CreateCache()
         {
-            await _writeLock.WaitAsync();
+            //await _writeLock.WaitAsync();
 
             var cache = new Cache
             {
@@ -197,7 +223,7 @@ namespace MinecraftAPI
             }
             finally
             {
-                _writeLock.Release();
+                //_writeLock.Release();
             }
         }
     }

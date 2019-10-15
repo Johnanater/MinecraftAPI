@@ -24,7 +24,7 @@ namespace MinecraftAPI.Controllers
             }
 
             // Wait a second, due to race conditions and Mojang
-            await Task.Delay(1000);
+            await Task.Delay(5000);
             
             var playerData = await Program.Utils.GetPlayerDataFromUsername(username);
 
