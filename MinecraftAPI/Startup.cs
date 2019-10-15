@@ -45,7 +45,8 @@ namespace MinecraftAPI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (int.TryParse(Configuration["cacheTime"], out int cacheTime))
+            // --cache-time=x
+            if (int.TryParse(Configuration["cache-time"], out int cacheTime))
                 Program.Instance.CacheTimeSeconds = cacheTime;
 
             if (env.IsDevelopment())
@@ -53,6 +54,8 @@ namespace MinecraftAPI
                 Program.JsonUtils.CacheFile = $"../Cache/cache.json";
                 app.UseDeveloperExceptionPage();
             }
+            
+            Console.WriteLine($"Using cache @ {Program.JsonUtils.CacheFile}, cache time: {Program.Instance.CacheTimeSeconds} seconds...");
 
             //app.UseHttpsRedirection();
 
