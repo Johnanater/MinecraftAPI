@@ -8,6 +8,13 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetCapeController : ControllerBase
     {
+        private readonly Utils _utils;
+        
+        public GetCapeController(Utils utils)
+        {
+            _utils = utils;
+        }
+        
         // api/Minecraft/GetCape/?uuid={uuid}
         [HttpGet]
         public async Task<ActionResult> Get()
@@ -17,7 +24,7 @@ namespace MinecraftAPI.Controllers
             
             string uuid = HttpContext.Request.Query["uuid"];
             
-            var playerData = await Program.Utils.GetPlayerData(uuid);
+            var playerData = await _utils.GetPlayerData(uuid);
 
             if (playerData?.Cape == null)
                 return new EmptyResult();

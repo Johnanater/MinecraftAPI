@@ -8,11 +8,17 @@ namespace MinecraftAPI
 {
     public class Utils
     {
-        public static readonly HttpClient HttpClient = new HttpClient();
+        //public static readonly HttpClient HttpClient = new HttpClient();
+        public readonly HttpClient HttpClient;
 
         private const string GetProfileUrl = "https://api.mojang.com/users/profiles/minecraft/{0}";
         private const string GetSessionProfileUrl = "https://sessionserver.mojang.com/session/minecraft/profile/{0}";
 
+        public Utils(HttpClient httpClient)
+        {
+            HttpClient = httpClient;
+        }
+        
         // Gets player data, checks for cache first
         public async Task<PlayerData> GetPlayerData(string uuid)
         {

@@ -7,12 +7,19 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetUUIDController : ControllerBase
     {
+        private readonly Utils _utils;
+        
+        public GetUUIDController(Utils utils)
+        {
+            _utils = utils;
+        }
+        
         // api/Minecraft/GetUUID/?username={username}
         [HttpGet]
         public async Task<ActionResult<string>> Get()
         {
             var username = HttpContext.Request.Query["username"];
-            var uuid = await Program.Utils.RetrieveUUID(username);
+            var uuid = await _utils.RetrieveUUID(username);
             
             if (uuid == null)
                 return new EmptyResult();

@@ -8,6 +8,13 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetCapeByUsername : ControllerBase
     {
+        private readonly Utils _utils;
+        
+        public GetCapeByUsername(Utils utils)
+        {
+            _utils = utils;
+        }
+        
         // api/Minecraft/GetCapeByUsername/?username={username}
         [HttpGet]
         public async Task<ActionResult> Get()
@@ -23,10 +30,10 @@ namespace MinecraftAPI.Controllers
                 username = username.Replace(".png", "");
             }
 
-            // Wait a second, due to race conditions and Mojang
+            // Wait 5 seconds, due to race conditions and Mojang
             await Task.Delay(5000);
             
-            var playerData = await Program.Utils.GetPlayerDataFromUsername(username);
+            var playerData = await _utils.GetPlayerDataFromUsername(username);
 
             if (playerData?.Cape == null)
                 return new EmptyResult();

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
+using Polly.Extensions.Http;
 
 namespace MinecraftAPI
 {
@@ -17,22 +18,28 @@ namespace MinecraftAPI
         }
 
         public IConfiguration Configuration { get; }
-
-        // TODO: Implement a retry on errors
-        // TODO: The current Polly implementation not work because the Dependency Injection does not work with external classes or something
-        // This method gets called by the runtime. Use this method to add services to the container.
+        
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
             
             services.AddMvc()
                 .AddNewtonsoftJson();
+
+            // Add Polly policy
+            var policy = HttpPolicyExtensions
+                .HandleTransientHttpError() // HttpRequestException, 5XX and 408
+                .OrResult(response => (int)response.StatusCode == 429) // RetryAfter
+                .WaitAndRetryAsync(new []
+                {
+                    TimeSpan.FromSeconds(30),
+                    TimeSpan.FromSeconds(60),
+                    TimeSpan.FromSeconds(90)
+                });
             
-            // Add Polly
             services
                 .AddHttpClient<Utils>()
-                .AddTransientHttpErrorPolicy(
-                    x => x.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(3, retryAttempt))));
+                .AddPolicyHandler(policy);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -47,7 +54,7 @@ namespace MinecraftAPI
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 

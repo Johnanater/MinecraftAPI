@@ -9,7 +9,6 @@ namespace MinecraftAPI
     public class Program
     {
         public static Program Instance;
-        public static Utils Utils;
         public static JsonUtils JsonUtils;
 
         public const string Version = "1.0.0.0";
@@ -19,7 +18,6 @@ namespace MinecraftAPI
         public static void Main(string[] args)
         {
             Instance = new Program();
-            Utils = new Utils();
             JsonUtils = new JsonUtils();
             
             Console.WriteLine($"MinecraftAPI started, version {Version}");

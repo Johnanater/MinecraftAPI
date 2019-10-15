@@ -8,6 +8,13 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetSkinController : ControllerBase
     {
+        private readonly Utils _utils;
+        
+        public GetSkinController(Utils utils)
+        {
+            _utils = utils;
+        }
+        
         // api/Minecraft/GetSkin/?uuid={uuid}
         [HttpGet]
         public async Task<ActionResult> Get()
@@ -17,7 +24,7 @@ namespace MinecraftAPI.Controllers
             
             string uuid = HttpContext.Request.Query["uuid"];
             
-            var playerData = await Program.Utils.GetPlayerData(uuid);
+            var playerData = await _utils.GetPlayerData(uuid);
 
             if (playerData?.Skin == null)
                 return new EmptyResult();

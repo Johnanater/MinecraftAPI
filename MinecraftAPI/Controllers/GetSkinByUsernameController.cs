@@ -9,6 +9,13 @@ namespace MinecraftAPI.Controllers
     [ApiController]
     public class GetSkinByUsernameController : ControllerBase
     {
+        private readonly Utils _utils;
+        
+        public GetSkinByUsernameController(Utils utils)
+        {
+            _utils = utils;
+        }
+        
         // api/Minecraft/GetSkinByUsername/?username={username}
         [HttpGet]
         public async Task<ActionResult> Get()
@@ -24,7 +31,7 @@ namespace MinecraftAPI.Controllers
                 username = username.Replace(".png", "");
             }
 
-            var playerData = await Program.Utils.GetPlayerDataFromUsername(username);
+            var playerData = await _utils.GetPlayerDataFromUsername(username);
 
             // Player has no skin, return empty
             if (playerData?.Skin == null)
