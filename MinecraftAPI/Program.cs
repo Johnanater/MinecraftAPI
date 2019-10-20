@@ -11,7 +11,7 @@ namespace MinecraftAPI
         public static Program Instance;
         public static JsonUtils JsonUtils;
 
-        public const string Version = "1.0.0.0";
+        public const string Version = "1.0.0";
 
         public int CacheTimeSeconds = 1800; // By default will cache for 1800 seconds, or 30 minutes
         
