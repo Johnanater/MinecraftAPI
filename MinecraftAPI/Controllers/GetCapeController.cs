@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MinecraftAPI.Controllers
 {
-    [Route("api/Minecraft/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class GetCapeController : ControllerBase
     {
@@ -15,7 +15,7 @@ namespace MinecraftAPI.Controllers
             _utils = utils;
         }
         
-        // api/Minecraft/GetCape/?uuid={uuid}
+        // /GetCape/?uuid={uuid}
         [HttpGet]
         public async Task<ActionResult> Get()
         {

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MinecraftAPI.Controllers
 {
-    [Route("api/Minecraft/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class GetCapeByUsername : ControllerBase
     {
@@ -15,7 +15,7 @@ namespace MinecraftAPI.Controllers
             _utils = utils;
         }
         
-        // api/Minecraft/GetCapeByUsername/?username={username}
+        // /GetCapeByUsername/?username={username}
         [HttpGet]
         public async Task<ActionResult> Get()
         {

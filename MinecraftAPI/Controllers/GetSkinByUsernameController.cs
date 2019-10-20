@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MinecraftAPI.Controllers
 {
     
-    [Route("api/Minecraft/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class GetSkinByUsernameController : ControllerBase
     {
@@ -16,7 +16,7 @@ namespace MinecraftAPI.Controllers
             _utils = utils;
         }
         
-        // api/Minecraft/GetSkinByUsername/?username={username}
+        // /GetSkinByUsername/?username={username}
         [HttpGet]
         public async Task<ActionResult> Get()
         {

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MinecraftAPI.Controllers
 {
-    [Route("api/Minecraft/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class GetUUIDController : ControllerBase
     {
@@ -14,7 +14,7 @@ namespace MinecraftAPI.Controllers
             _utils = utils;
         }
         
-        // api/Minecraft/GetUUID/?username={username}
+        // /GetUUID/?username={username}
         [HttpGet]
         public async Task<ActionResult<string>> Get()
         {
