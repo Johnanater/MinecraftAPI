@@ -18,6 +18,9 @@ namespace MinecraftAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<string>> Get()
         {
+            if (string.IsNullOrEmpty(HttpContext.Request.Query["username"]))
+                return null;
+            
             var username = HttpContext.Request.Query["username"];
             var uuid = await _utils.RetrieveUUID(username);
             
