@@ -6,11 +6,11 @@ namespace MinecraftAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class GetCapeByUsername : ControllerBase
+    public class GetCapeByUsernameController : ControllerBase
     {
         private readonly Utils _utils;
         
-        public GetCapeByUsername(Utils utils)
+        public GetCapeByUsernameController(Utils utils)
         {
             _utils = utils;
         }
