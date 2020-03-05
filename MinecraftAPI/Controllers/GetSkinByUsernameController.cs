@@ -21,7 +21,7 @@ namespace MinecraftAPI.Controllers
         public async Task<ActionResult> Get()
         {
             if (string.IsNullOrEmpty(HttpContext.Request.Query["username"]))
-                return null;
+                return new BadRequestResult();
             
             string username = HttpContext.Request.Query["username"];
 
@@ -35,7 +35,7 @@ namespace MinecraftAPI.Controllers
 
             // Player has no skin, return empty
             if (playerData?.Skin == null)
-                return new EmptyResult();
+                return new NotFoundResult();
 
             var image = Convert.FromBase64String(playerData.Skin);
 

@@ -20,14 +20,14 @@ namespace MinecraftAPI.Controllers
         public async Task<ActionResult> Get()
         {
             if (string.IsNullOrEmpty(HttpContext.Request.Query["uuid"]))
-                return null;
+                return new BadRequestResult();
             
             string uuid = HttpContext.Request.Query["uuid"];
             
             var playerData = await _utils.GetPlayerData(uuid);
 
             if (playerData?.Skin == null)
-                return new EmptyResult();
+                return new NotFoundResult();
             
             var image = Convert.FromBase64String(playerData.Skin);
 

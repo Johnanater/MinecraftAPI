@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MinecraftAPI.Controllers
@@ -19,13 +19,13 @@ namespace MinecraftAPI.Controllers
         public async Task<ActionResult<string>> Get()
         {
             if (string.IsNullOrEmpty(HttpContext.Request.Query["username"]))
-                return null;
+                return new BadRequestResult();
             
             var username = HttpContext.Request.Query["username"];
             var uuid = await _utils.RetrieveUUID(username);
             
             if (uuid == null)
-                return new EmptyResult();
+                return new NotFoundResult();
             
             return uuid; 
         }

@@ -36,7 +36,7 @@ namespace MinecraftAPI.Controllers
             var playerData = await _utils.GetPlayerDataFromUsername(username);
 
             if (playerData?.Cape == null)
-                return new EmptyResult();
+                return new NotFoundResult();
             
             var image = Convert.FromBase64String(playerData.Cape);
 
